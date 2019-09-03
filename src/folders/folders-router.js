@@ -14,7 +14,6 @@ const serializeFolder = folder => ({
 foldersRouter
     .route('/')
     .get((req, res, next) => {
-        // Manish. Is it a bad idea to define this in the global scope? I assume yes but why?
         const knex = req.app.get('db');
         FoldersService.getAllFolders(knex)
             .then(folders => {
@@ -24,10 +23,10 @@ foldersRouter
     })
     .post(jsonParser, (req, res, next) => {
         const knex = req.app.get('db');
-        const { id, folder_name } = req.body;
-        const newFolder = { id, folder_name }
+        const { folder_name } = req.body;
+        const newFolder = { folder_name }
 
-        for (const [key, value] of Object.entries(newNote))
+        for (const [key, value] of Object.entries(newFolder))
             if (value == null)
                 return res.status(400).json({
                     error: { 
@@ -48,7 +47,6 @@ foldersRouter
     .route('/:folder_id')
     .all((req, res, next) => {
         const knex= req.app.get('db');
-        // Manish. I want to inspect the req.params object. How do I do that with the debugger? 
         FoldersService.getById(knex, req.params.folder_id)
             .then(folder => {
                 if (!folder)
@@ -58,7 +56,6 @@ foldersRouter
                         }
                     })
                 res.folder = folder
-                // what does this do?
                 next()
             })
             .catch(next)

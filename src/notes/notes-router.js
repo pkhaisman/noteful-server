@@ -6,8 +6,6 @@ const NotesService = require('./notes-service');
 const notesRouter = express.Router();
 const jsonParser = express.json();
 
-// Manish. What is it necessary to perform xss on?
-// should id be here?
 const serializeNote = note => ({
     id: note.id,
     note_name: xss(note.note_name),
@@ -15,6 +13,17 @@ const serializeNote = note => ({
     date_modified: note.date_modified,
     folder_id: note.folder_id,
 });
+
+notesRouter
+    .route(`/`)
+    .get((req, res, next) => {
+        const knex = req.app.get('db');
+        NotesService.getAllNotes(knex)
+            .then(notes => {
+                res.json(notes)
+            })
+            .catch(next)
+    });
 
 notesRouter
     .route('/:folder_id/notes')

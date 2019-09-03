@@ -74,7 +74,7 @@ describe(`Folders routes`, () => {
         });
     });
 
-    describe.only(`POST /api/folders`, () => {
+    describe(`POST /api/folders`, () => {
         afterEach('remove folders', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
         it(`responds with 201 and the created folder`, () => {
@@ -98,6 +98,7 @@ describe(`Folders routes`, () => {
 
         requiredFields.forEach(field => {
             const newFolder = {
+                id: 1,
                 folder_name: 'Folder Name'
             }
 
@@ -116,95 +117,97 @@ describe(`Folders routes`, () => {
         })
     });
 
-// ----------------------------------------------------------------------
-    context(`Given 'noteful_folders' has data`, () => {
-        beforeEach(() => {
-            return db
-                .insert(testFolders)
-                .into('noteful_folders')
+    describe(`DELETE /api/folders/:folder_id`, () => {
+        context(`Given 'noteful_folders' has data`, () => {
+            beforeEach('insert folders', () => {
+                return db
+                    .insert(testFolders)
+                    .into('noteful_folders')
+            });
+    
+            afterEach('remove folders', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
+            
+            it(`responds with 204 and removes the folder`, () => {
+                const folderId = 2;
+                const expectedFolders = testFolders.filter(folder => folder.id !== folderId)
+                return supertest(app)
+                    .delete(`/api/folders/${folderId}`)
+                    .expect(204)
+                    .then(res => {
+                        return supertest(app)
+                            .get(`/api/folders`)
+                            .expect(expectedFolders)
+                    })
+            });
         });
-
-        afterEach(() => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
-
-        it(`GET /api/folders/:folder_id responds with 200 and the specified folder`, () => {
-            const idToGet = 2;
-            return supertest(app)
-                .get(`/api/folders/${idToGet}`)
-                .expect(200, testFolders[idToGet - 1])
-        });
-
-        it(`DELETE /api/folders/:folder_id responds with 204 and removes the folder`, () => {
-            const idToDelete = 2;
-            return supertest(app)
-                .delete(`/api/folders/${idToDelete}`)
-                .expect(204)
-                .then(res => {
-                    return supertest(app)
-                        .get('/api/folders')
-                        .expect(testFolders.filter(folder => folder.id !== idToDelete))
-                })
-        });
-
-        it(`PATCH /api/folders/:folder_id responds with 204 and the updated folder`, () => {
-            const idToUpdate = 2;
-            const updatedFolder = {
-                folder_name: 'Updated Name'
-            }
-            const expectedFolder = {
-                ...testFolders[idToUpdate - 1],
-                ...updatedFolder
-            }
-            return supertest(app)
-                .patch(`/api/folders/${idToUpdate}`)
-                .send(updatedFolder)
-                .expect(204)
-                .then(res => {
-                    return supertest(app)
-                        .get(`/api/folders/${idToUpdate}`)
-                        .expect(200, expectedFolder)
-                })
-        })
         
-        it(`PATCH ... responds with 400 when no required fields supplied`, () => {
-            const idToUpdate = 2;
-            return supertest(app)
-                .patch(`/api/folders/${idToUpdate}`)
-                .send({ fieldDoesNotExist: 'foo' })
-                .expect(400, {
-                    error: {
-                        message: `Request body must contain 'folder_name'`
-                    }
-                })
-        })
+        context(`Given 'noteful_folders' has no data`, () => {
+            it(`responds with 404 and an error message`, () => {
+                const folderId = 2;
+                return supertest(app)
+                    .delete(`/api/folders/${folderId}`)
+                    .expect(404, {
+                        error: {
+                            message: `Folder doesn't exist`
+                        }
+                    })
+
+            });
+        });
     });
 
-    context(`Given 'noteful_folders' has no data`, () => {
-        afterEach(() => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
-        
-        it(`POST /api/folders/:folder_id responds with 201 and created folder`, () => {
-            const newFolder = makeFoldersArray()[0];
-            return supertest(app)
-                .post('/api/folders')
-                .send(newFolder)
-                .expect(201)
-                .expect(res => {
-                    expect(res.body.id).to.eql(newFolder.id)
-                    expect(res.body.folder_name).to.eql(newFolder.folder_name)
-                })
-                .then(postRes => {
-                    return supertest(app)
-                        .get(`/api/folders/${postRes.body.id}`)
-                        .expect(postRes.body)
-                })
+    describe(`PATCH /api/folders/:folder_id`, () => {
+        context(`Given 'noteful_folders' has data`, () => {
+            beforeEach('insert folders', () => {
+                return db
+                    .insert(testFolders)
+                    .into('noteful_folders')
+            });
+    
+            afterEach('remove folders', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
+
+            it(`responds with 204 and the updated folder`, () => {
+                const idToUpdate = 2;
+                const updatedFolder = {
+                    folder_name: 'Updated Name'
+                }
+                const expectedFolder = {
+                    ...testFolders[idToUpdate - 1],
+                    ...updatedFolder
+                }
+                return supertest(app)
+                    .patch(`/api/folders/${idToUpdate}`)
+                    .send(updatedFolder)
+                    .expect(204)
+                    .then(res => {
+                        return supertest(app)
+                            .get(`/api/folders/${idToUpdate}`)
+                            .expect(200, expectedFolder)
+                    })
+            });
+
+            it(`responds with 400 when no required fields supplied`, () => {
+                const idToUpdate = 2;
+                return supertest(app)
+                    .patch(`/api/folders/${idToUpdate}`)
+                    .send({ fieldDoesNotExist: 'foo' })
+                    .expect(400, {
+                        error: {
+                            message: `Request body must contain 'folder_name'`
+                        }
+                    })
+            })
         });
 
-        it(`PATCH /api/folders/:folder_id responds with 404`, () => {
-            const idToUpdate = 1234;
-            return supertest(app)
-                .patch(`/api/folders/${idToUpdate}`)
-                .expect(404, { error: {
-                    message: `Folder doesn't exist`
-                }})
-        })
-    })
+        context(`Given 'noteful_folders' has no data`, () => {
+            it(`responds with 404`, () => {
+                const idToUpdate = 1234;
+                return supertest(app)
+                    .patch(`/api/folders/${idToUpdate}`)
+                    .expect(404, { error: {
+                        message: `Folder doesn't exist`
+                    }})
+            })
+        });
+    });
 });

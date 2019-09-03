@@ -34,7 +34,7 @@ describe(`Notes routes`, () => {
             afterEach(() => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
             it(`responds with 200 and all notes within the given folder`, function() {
-                this.retries(5)
+                this.retries(10)
                 // i was trying to make this work with more than one note in a folder but i couldnt make it work? is that overkill? Is it enough to test for one?
                 const folderId = 2;
                 const expectedNote = testNotes.find(note => note.folder_id === folderId)
@@ -82,7 +82,7 @@ describe(`Notes routes`, () => {
             afterEach(() => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
             it(`responds with 200 and the specified note`, function() {
-                this.retries(5)
+                this.retries(10)
                 const folderId = 2;
                 const noteId = 2;
                 const expectedNote = testNotes.find(note => note.id === noteId)
@@ -127,7 +127,7 @@ describe(`Notes routes`, () => {
         afterEach('clean tables', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
         it(`responds with 201 and the created note`, function() {
-            this.retries(5)
+            this.retries(10)
             const newNote = makeNotesArray()[0];
             return supertest(app)
                 .post(`/api/folders/${newNote.folder_id}/notes`)
@@ -191,7 +191,7 @@ describe(`Notes routes`, () => {
             afterEach('clear data from tables', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
             it(`responds with 204 and removes the specified note`, function() {
-                this.retries(5)
+                this.retries(10)
                 const idOfNoteToDelete = 2
                 const noteToBeDeleted = testNotes.find(note => note.id === idOfNoteToDelete)
                 const notesInFolderBefore = testNotes.filter(note => note.folder_id === noteToBeDeleted.folder_id)
@@ -245,7 +245,7 @@ describe(`Notes routes`, () => {
             afterEach('clear data from tables', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
 
             it(`responds with 204 and updates the note`, function() {
-                this.retries(5)
+                this.retries(10)
                 const idToUpdate = 2;
                 const unchangedNote = testNotes[idToUpdate - 1]
                 const updatedNote = {
@@ -290,7 +290,7 @@ describe(`Notes routes`, () => {
             });
 
             it(`responds with 204 and updated not when updating only a subset of fields`, function() {
-                this.retries(5)
+                this.retries(10)
                 const idToUpdate = 2;
                 const updatedNote = {
                     note_name: 'Updated title'

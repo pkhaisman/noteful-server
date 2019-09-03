@@ -1,4 +1,13 @@
 const NotesService = {
+    getAllNotes(knex) {
+        return knex
+            .select('*')
+            .from('noteful_notes')
+            .then(rows => {
+                return rows
+            })
+    },
+
     getAllNotesInFolder(knex, folderId) {
         return knex
             .select('*')
