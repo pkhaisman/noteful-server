@@ -59,7 +59,31 @@ notesRouter
 
 notesRouter
     .route('/:folder_id/notes/:note_id')
-    .all((req, res, next) => {
+    // .all((req, res, next) => {
+    //     const knex = req.app.get('db')
+    //     NotesService.getById(knex, req.params.note_id, req.params.folder_id)
+    //         .then(note => {
+    //             const paramInt = parseInt(req.params.folder_id)
+    //             if (!note) {
+    //                 return res.status(404).json({
+    //                     error: {
+    //                         message: `Note doesn't exist`
+    //                     }
+    //                 })
+    //             } else if (note.folder_id !== paramInt) {
+    //                 return res.status(404).json({
+    //                     error: {
+    //                         message: `Note cannot be found in specified folder`
+    //                     }
+    //                 })
+    //             } 
+                
+    //             res.note = note
+    //             next()
+    //         })
+    //         .catch(next)
+    // })
+    .get((req, res, next) => {
         const knex = req.app.get('db')
         NotesService.getById(knex, req.params.note_id, req.params.folder_id)
             .then(note => {
@@ -77,23 +101,37 @@ notesRouter
                         }
                     })
                 } 
-                
-                res.note = note
-                next()
+                res.json(serializeNote(note))
             })
-            .catch(next)
-    })
-    .get((req, res, next) => {
-        res.json(serializeNote(res.note))
+                .catch(next)
     })
     .delete((req, res, next) => {
         const knex = req.app.get('db')
+        NotesService.getById(knex, req.params.note_id, req.params.folder_id)
+            .then(note => {
+                const paramInt = parseInt(req.params.folder_id)
+                if (!note) {
+                    return res.status(404).json({
+                        error: {
+                            message: `Note doesn't exist`
+                        }
+                    })
+                } else if (note.folder_id !== paramInt) {
+                    return res.status(404).json({
+                        error: {
+                            message: `Note cannot be found in specified folder`
+                        }
+                    })
+                }
+            })
+            .catch(() => console.log('catch ran'))
+
         NotesService.deleteNote(knex, req.params.note_id)
             .then(() => {
-                res
-                    .status(204)
-                    .end()
+                console.log('delete note then block')
+                res.status(204).end()
             })
+            .catch(() => console.log('delete notes service error'))
     })
     .patch(jsonParser, (req, res, next) => {
         const knex = req.app.get('db')
@@ -107,6 +145,27 @@ notesRouter
                     message: `Request body must contain either 'note_name', 'note_content', or 'folder_id'`
                 }
             })
+        
+        NotesService.getById(knex, req.params.note_id, req.params.folder_id)
+            .then(note => {
+                const paramInt = parseInt(req.params.folder_id)
+                if (!note) {
+                    return res.status(404).json({
+                        error: {
+                            message: `Note doesn't exist`
+                        }
+                    })
+                } else if (note.folder_id !== paramInt) {
+                    return res.status(404).json({
+                        error: {
+                            message: `Note cannot be found in specified folder`
+                        }
+                    })
+                } 
+                res.note = note
+                // next()
+            })
+            .catch(next)
 
         NotesService.updateNote(knex, req.params.note_id, noteToUpdate)
             .then(numRowsAffected => {

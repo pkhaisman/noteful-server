@@ -84,7 +84,7 @@ describe(`Folders routes`, () => {
                 .send(newFolder)
                 .expect(201)
                 .expect(res => {
-                    expect(res.body.id).to.eql(newFolder.id)
+                    expect(res.body).to.have.property('id')
                     expect(res.body.folder_name).to.eql(newFolder.folder_name)
                 })
                 .then(postRes => {

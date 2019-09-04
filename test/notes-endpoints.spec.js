@@ -18,7 +18,7 @@ describe(`Notes routes`, () => {
 
     after('destroy the db', () => db.destroy());
 
-    describe(`GET /api/folders/:folder_id/notes`, () => {
+    describe(`GET /api/notes/:folder_id/notes`, () => {
         context(`Given 'noteful_notes' has data`, () => {
             beforeEach(() => {
                 return db
@@ -39,7 +39,7 @@ describe(`Notes routes`, () => {
                 const folderId = 2;
                 const expectedNote = testNotes.find(note => note.folder_id === folderId)
                 return supertest(app)
-                    .get(`/api/folders/${folderId}/notes`)
+                    .get(`/api/notes/${folderId}/notes`)
                     .expect(200)
                     .expect(res => {
                         // this tests the first object in the array
@@ -60,13 +60,13 @@ describe(`Notes routes`, () => {
             it(`responds with 200 and an empty array`, () => {
                 const folderId = 2
                 return supertest(app)
-                    .get(`/api/folders/${folderId}/notes`)
+                    .get(`/api/notes/${folderId}/notes`)
                     .expect(200, [])
             })
         });
     });
 
-    describe(`GET /api/folders/:folder_id/notes/:note_id`, () => {
+    describe(`GET /api/notes/:folder_id/notes/:note_id`, () => {
         context(`Given 'noteful_notes' has data`, () => {
             beforeEach(() => {
                 return db
@@ -88,7 +88,7 @@ describe(`Notes routes`, () => {
                 const expectedNote = testNotes.find(note => note.id === noteId)
 
                 return supertest(app)
-                    .get(`/api/folders/${folderId}/notes/${noteId}`)
+                    .get(`/api/notes/${folderId}/notes/${noteId}`)
                     .expect(200)
                     .expect(res => {
                         const expectedDate = new Date().toLocaleString()
@@ -107,7 +107,7 @@ describe(`Notes routes`, () => {
                 const folderId = 2;
                 const noteId = 2;
                 return supertest(app)
-                    .get(`/api/folders/${folderId}/notes/${noteId}`)
+                    .get(`/api/notes/${folderId}/notes/${noteId}`)
                     .expect(404, {
                         error: {
                             message: `Note doesn't exist`
@@ -117,7 +117,7 @@ describe(`Notes routes`, () => {
         });
     });
 
-    describe(`POST /api/folders/:folder_id/notes`, () => {
+    describe(`POST /api/notes/:folder_id/notes`, () => {
         beforeEach('insert folders', () => {
             return db
                 .insert(testFolders)
@@ -130,7 +130,7 @@ describe(`Notes routes`, () => {
             this.retries(10)
             const newNote = makeNotesArray()[0];
             return supertest(app)
-                .post(`/api/folders/${newNote.folder_id}/notes`)
+                .post(`/api/notes/${newNote.folder_id}/notes`)
                 .send(newNote)
                 .expect(201)
                 .expect(res => {
@@ -144,7 +144,7 @@ describe(`Notes routes`, () => {
                 })
                 .then(postRes => {
                     return supertest(app)
-                        .get(`/api/folders/${postRes.body.folder_id}/notes/${postRes.body.id}`)
+                        .get(`/api/notes/${postRes.body.folder_id}/notes/${postRes.body.id}`)
                         .expect(postRes.body)
                 })
         });
@@ -163,7 +163,7 @@ describe(`Notes routes`, () => {
                 delete newNote[field]
 
                 return supertest(app)
-                    .post(`/api/folders/${newNote.folder_id}/notes`)
+                    .post(`/api/notes/${newNote.folder_id}/notes`)
                     .send(newNote)
                     .expect(400, {
                         error: {
@@ -175,7 +175,7 @@ describe(`Notes routes`, () => {
 
     });
 
-    describe(`DELETE /api/folders/:folder_id/notes/note_id`, () => {
+    describe(`DELETE /api/notes/:folder_id/notes/note_id`, () => {
         context(`Given 'noteful_notes' has data`, () => {
             beforeEach('insert data into tables', () => {
                 return db
@@ -197,11 +197,11 @@ describe(`Notes routes`, () => {
                 const notesInFolderBefore = testNotes.filter(note => note.folder_id === noteToBeDeleted.folder_id)
                 const notesInFolderAfter = notesInFolderBefore.find(note => note.id !== idOfNoteToDelete)
                 return supertest(app)
-                    .delete(`/api/folders/${noteToBeDeleted.folder_id}/notes/${idOfNoteToDelete}`)
+                    .delete(`/api/notes/${noteToBeDeleted.folder_id}/notes/${idOfNoteToDelete}`)
                     .expect(204)
                     .then(res => {
                         return supertest(app)
-                            .get(`/api/folders/${noteToBeDeleted.folder_id}/notes`)
+                            .get(`/api/notes/${noteToBeDeleted.folder_id}/notes`)
                             .expect(() => {
                                 expect(notesInFolderAfter.note_name).to.eql(notesInFolderAfter.note_name)
                                 expect(notesInFolderAfter.note_content).to.eql(notesInFolderAfter.note_content)
@@ -219,7 +219,7 @@ describe(`Notes routes`, () => {
             it(`responds with 404`, () => {
                 const idToDelete = 1234
                 return supertest(app)
-                    .delete(`/api/folders/1/notes/${idToDelete}`)
+                    .delete(`/api/notes/1/notes/${idToDelete}`)
                     .expect(404, {
                         error: {
                             message: `Note doesn't exist`
@@ -229,7 +229,7 @@ describe(`Notes routes`, () => {
         });
     });
 
-    describe(`PATCH /api/folders/:folder_id/notes/note_id`, () => {
+    describe(`PATCH /api/notes/:folder_id/notes/:note_id`, () => {
         context(`Given 'noteful_notes' has data`, () => {
             beforeEach('insert folders and note', () => {
                 return db
@@ -258,12 +258,12 @@ describe(`Notes routes`, () => {
                     ...updatedNote
                 }
                 return supertest(app)
-                    .patch(`/api/folders/${unchangedNote.folder_id}/notes/${idToUpdate}`)
+                    .patch(`/api/notes/${unchangedNote.folder_id}/notes/${idToUpdate}`)
                     .send(updatedNote)
                     .expect(204)
                     .then(res =>
                         supertest(app)
-                            .get(`/api/folders/${updatedNote.folder_id}/notes/${idToUpdate}`)
+                            .get(`/api/notes/${updatedNote.folder_id}/notes/${idToUpdate}`)
                             .expect(res => {
                                 expect(res.body.note_name).to.eql(expectedNote.note_name)
                                 expect(res.body.note_content).to.eql(expectedNote.note_content)
@@ -280,7 +280,7 @@ describe(`Notes routes`, () => {
                 const idToUpdate = 2;
                 const noteToUpdate = testNotes.find(note => note.id === idToUpdate);
                 return supertest(app)
-                    .patch(`/api/folders/${noteToUpdate.folder_id}/notes/${idToUpdate}`)
+                    .patch(`/api/notes/${noteToUpdate.folder_id}/notes/${idToUpdate}`)
                     .send({ foo: 'Invalid field' })
                     .expect(400, {
                         error: {
@@ -302,7 +302,7 @@ describe(`Notes routes`, () => {
                     ...updatedNote
                 }
                 return supertest(app)
-                    .patch(`/api/folders/${unchangedNote.folder_id}/notes/${idToUpdate}`)
+                    .patch(`/api/notes/${unchangedNote.folder_id}/notes/${idToUpdate}`)
                     .send({
                         ...updatedNote,
                         fieldToIgnore: 'should not be in response'
@@ -310,7 +310,7 @@ describe(`Notes routes`, () => {
                     .expect(204)
                     .then(res => {
                         return supertest(app)
-                            .get(`/api/folders/${unchangedNote.folder_id}/notes/${idToUpdate}`)
+                            .get(`/api/notes/${unchangedNote.folder_id}/notes/${idToUpdate}`)
                             .expect(res => {
                                 expect(res.body.note_name).to.eql(expectedNote.note_name)
                                 expect(res.body.note_content).to.eql(expectedNote.note_content)
@@ -325,10 +325,22 @@ describe(`Notes routes`, () => {
         });
         
         context(`Given 'noteful_notes' has no data`, () => {
+            beforeEach('insert folders', () => {
+                return db
+                    .into('noteful_folders')
+                    .insert(testFolders)
+            })
+
+            afterEach('clear data from tables', () => db.raw('TRUNCATE TABLE noteful_folders, noteful_notes CASCADE'));
+
             it(`responds with 404 and error message`, () => {
-                const idToPatch = 1234;
+                const idToUpdate = 1234;
+                const updatedNote = {
+                    note_name: 'Updated title'
+                }
                 return supertest(app)
-                    .patch(`/api/folders/1/notes/${idToPatch}`)
+                    .patch(`/api/notes/1/notes/${idToUpdate}`)
+                    .send({ note_name: updatedNote.note_name })
                     .expect(404, {
                         error: {
                             message: `Note doesn't exist`

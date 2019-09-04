@@ -18,7 +18,7 @@ const NotesService = {
             })
     },
 
-    getById(knex, noteId, folderId) {
+    getById(knex, noteId) {
         return knex
             .from('noteful_notes')
             .select('*')
