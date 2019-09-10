@@ -9,6 +9,8 @@ const notesRouter = require('./notes/notes-router');
 
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 const morganOption = (NODE_ENV === 'production')
     ? 'tiny'
     : 'dev';
@@ -24,10 +26,16 @@ app.get('/', (req, res) => {
     res.send('Hello, world!');
 });
 
+app.get('*', (req,res) =>{
+    res.sendFile(path.join(__dirname+'/client/build/index.html'));
+});
+
+
 app.use(function errorHandler(error, req, res, next) {
+    console.log('error handler ran')
     let response;
     if (NODE_ENV === 'production') {
-        response = { error: { message: 'server error' }}
+        response = { error: { message: 'server error from production' }}
     } else {
         console.error(error)
         response = { message: error.message, error }
